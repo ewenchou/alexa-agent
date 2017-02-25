@@ -44,7 +44,7 @@ class AlexaAgent(object):
         else:
             self.send_to_alexa(text=input)
     
-    def send_to_alexa(self, text, addl_text_list=[]):
+    def send_to_alexa(self, text, addl_text_list=[], no_play=False):
         """Send text to Alexa. If addl_text_list is provided, all the text
         commands will be sent concurrently and responses played back in order.
 
@@ -58,6 +58,8 @@ class AlexaAgent(object):
         text_list = [text] + addl_text_list
         input_list = [tts(t) for t in text_list]
         output_list = alexa.ask_multiple(input_list)
+        if no_play:
+            return output_list
         if len(output_list) > 1:
             self.play_mp3(output_list[0], output_list[1:])
         else:

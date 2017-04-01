@@ -44,18 +44,41 @@ class AlexaAgent(object):
         else:
             self.send_to_alexa(text=input)
     
-    def send_to_alexa(self, text, addl_text_list=[], no_play=False):
-        """Send text to Alexa. If addl_text_list is provided, all the text
+    def send_commands(self, command_list, play_audio=True, auto_clean=False):
+        """
+        Simplified interface to send commands to Alexa Voice Service.
+
+        :param command_list: List of commands as strings.
+        :type command_list: list
+        :param play_audio: Whether to play the audio response using mpg123.
+        :type play_audio: bool
+        :param auto_clean: Whether ton auto delete the response files.
+        :type auto_clean: bool
+        :return: List of audio response file path strings.
+        :rtype: list
+        """
+        alexa = AlexaClient()  # Re-init to avoid timeout
+        input_list = [tts(cmd) for cmd in command_list]
+        output_list = alexa.ask_multiple(input_list)
+        if play_audio:
+            if len(output_list) > 1:
+                self.play_mp3(output_list[0], output_list[1:])
+            else:
+                self.play_mp3(output_list[0])
+        if auto_clean:
+            alexa.clean()
+        return output_list
+
+    def send_to_alexa(self, text_list, no_play=False):
+        """
+        Send text to Alexa. If addl_text_list is provided, all the text
         commands will be sent concurrently and responses played back in order.
 
-        @param: text: Text command to send to Alexa.
-        @type: text: str
-
-        @param: addl_text_list: List of additional text commands to send.
-        @type: addl_text_list: list
+        :param text_list: List of text commands to send to Alexa.
+        :param no_play: Set to True if you don't want the output audio to be played.
+        :return List of mp3 file names (if no_play is set to True).
         """
         alexa = AlexaClient()
-        text_list = [text] + addl_text_list
         input_list = [tts(t) for t in text_list]
         output_list = alexa.ask_multiple(input_list)
         if no_play:
